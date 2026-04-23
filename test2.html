@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POLIMERET — Shkenca e Molekulave të Mëdha</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --bg:#030310;--bg2:#07071a;--bg3:#0a0a20;
+  --c:#00e5ff;--m:#ff0080;--g:#ffd60a;--gr:#00ff88;
+  --txt:#e8e8ff;--muted:#7777aa;--border:rgba(0,229,255,.14);
+  --card:rgba(255,255,255,.032);
+  --glow-c:0 0 30px rgba(0,229,255,.45);
+  --glow-m:0 0 30px rgba(255,0,128,.45);
+  --ff:'Orbitron',sans-serif;--fb:'Outfit',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:var(--fb);overflow-x:hidden;cursor:none}
+
+/* ── CURSOR ── */
+#cur{width:7px;height:7px;background:var(--c);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;box-shadow:var(--glow-c);transition:transform .1s}
+#cur-ring{width:34px;height:34px;border:1.5px solid rgba(0,229,255,.5);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;transition:width .2s,height .2s}
+body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring{width:52px;height:52px;border-color:var(--m)}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.6rem 3rem;display:flex;align-items:center;justify-content:space-between;transition:background .4s,backdrop-filter .4s}
+nav.sc{background:rgba(3,3,16,.85);backdrop-filter:blur(22px);border-bottom:1px solid var(--border)}
+.nav-brand{font-family:var(--ff);font-size:1.35rem;font-weight:900;color:var(--c);text-decoration:none;letter-spacing:.12em}
+.nav-brand b{color:var(--m)}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-family:var(--ff);transition:color .3s}
+.nav-links a:hover{color:var(--c)}
+
+/* ── HERO ── */
+#hero{height:100vh;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-content{position:relative;z-index:10;text-align:center;padding:0 1rem}
+.hero-label{font-family:var(--ff);font-size:.7rem;letter-spacing:.4em;color:var(--c);text-transform:uppercase;margin-bottom:1.5rem;opacity:0;animation:fadeUp 1s .5s forwards}
+.hero-title{font-family:var(--ff);font-size:clamp(4rem,13vw,11rem);font-weight:900;line-height:.88;letter-spacing:-.02em;background:linear-gradient(135deg,#fff 0%,var(--c) 45%,var(--m) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;opacity:0;animation:fadeUp 1s .8s forwards}
+.hero-sub{font-size:clamp(.9rem,1.5vw,1.1rem);color:var(--muted);margin-top:1.8rem;font-weight:300;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.7;opacity:0;animation:fadeUp 1s 1.1s forwards}
+.hero-cta{margin-top:3rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp 1s 1.4s forwards}
+.btn-p{padding:.85rem 2.4rem;background:var(--c);color:var(--bg);border:none;font-family:var(--ff);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:700;cursor:none;transition:transform .2s,box-shadow .2s;text-decoration:none;display:inline-block}
+.btn-p:hover{transform:translateY(-3px);box-shadow:var(--glow-c)}
+.btn-g{padding:.85rem 2.4rem;background:transparent;color:var(--txt);border:1px solid var(--border);font-family:var(--ff);font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;cursor:none;transition:border-color .3s,color .3s;text-decoration:none;display:inline-block}
+.btn-g:hover{border-color:var(--c);color:var(--c)}
+.scroll-ind{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.6rem;opacity:0;animation:fadeUp 1s 2s forwards}
+.scroll-ind span{font-size:.65rem;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;font-family:var(--ff)}
+.scroll-line{width:1px;height:55px;background:linear-gradient(to bottom,var(--c),transparent);animation:scrollLine 2s infinite}
+@keyframes scrollLine{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ── SECTIONS ── */
+section{padding:9rem 0}
+.container{max-width:1200px;margin:0 auto;padding:0 3rem}
+.sec-label{font-family:var(--ff);font-size:.65rem;letter-spacing:.45em;color:var(--c);text-transform:uppercase;margin-bottom:1rem;display:block}
+.sec-title{font-family:var(--ff);font-size:clamp(2.2rem,4.5vw,3.8rem);font-weight:700;line-height:1.08;margin-bottom:1.5rem}
+.sec-title span{color:var(--c)}
+.sec-title em{font-style:normal;-webkit-text-fill-color:transparent;-webkit-text-stroke:1px var(--c)}
+.glow-div{height:1px;background:linear-gradient(90deg,transparent,var(--c),transparent);margin:1rem 0;opacity:.4}
+
+/* ── GRID BG ── */
+.grid-bg{background-image:linear-gradient(rgba(0,229,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.028) 1px,transparent 1px);background-size:60px 60px}
+
+/* ── INTRO ── */
+#intro{background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%)}
+.intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center}
+.intro-text p{font-size:1.02rem;line-height:1.85;color:#9999bb;margin-bottom:1.4rem;font-weight:300}
+.intro-text p strong{color:var(--c);font-weight:600}
+.hl-box{border-left:3px solid var(--c);padding:1.4rem 2rem;background:rgba(0,229,255,.045);border-radius:0 6px 6px 0;margin:2rem 0}
+.hl-box p{font-size:1.1rem!important;color:var(--txt)!important;font-weight:500!important;line-height:1.6!important;font-style:italic}
+.stats-g{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:2.5rem}
+.stat-c{background:var(--card);border:1px solid var(--border);padding:1.8rem;border-radius:4px;text-align:center;transition:border-color .3s,transform .3s}
+.stat-c:hover{border-color:var(--c);transform:translateY(-4px);box-shadow:var(--glow-c)}
+.stat-n{font-family:var(--ff);font-size:2.2rem;font-weight:900;color:var(--c);display:block}
+.stat-l{font-size:.78rem;color:var(--muted);margin-top:.3rem;text-transform:uppercase;letter-spacing:.08em}
+.mol-visual{position:relative;height:420px;display:flex;align-items:center;justify-content:center}
+#mol-canvas{width:100%;height:100%;border-radius:8px}
+
+/* ── LLOJET ── */
+#llojet{background:var(--bg2)}
+.llojet-g{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:4rem}
+.ll-card{background:var(--card);border:1px solid var(--border);overflow:hidden;border-radius:6px;transition:transform .4s,border-color .4s;cursor:none}
+.ll-card:hover{transform:translateY(-10px);border-color:var(--c)}
+.ll-card:hover .ll-img{transform:scale(1.07);filter:brightness(.9) saturate(1)}
+.ll-img-w{height:210px;overflow:hidden}
+.ll-img{width:100%;height:100%;object-fit:cover;filter:brightness(.55) saturate(.8);transition:transform .6s,filter .5s}
+.ll-body{padding:2rem}
+.ll-tag{font-family:var(--ff);font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;padding:.28rem .75rem;border-radius:99px;margin-bottom:.9rem;display:inline-block}
+.t-nat{background:rgba(0,229,255,.1);color:var(--c)}
+.t-syn{background:rgba(255,0,128,.1);color:var(--m)}
+.t-bio{background:rgba(0,255,136,.1);color:var(--gr)}
+.ll-title{font-family:var(--ff);font-size:1.2rem;font-weight:700;margin-bottom:.75rem}
+.ll-text{font-size:.88rem;color:var(--muted);line-height:1.72}
+.ll-chips{margin-top:1rem;display:flex;flex-wrap:wrap;gap:.38rem}
+.chip{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);padding:.2rem .65rem;border-radius:99px;font-size:.72rem;color:var(--muted)}
+
+/* ── STICKY SCROLL ── */
+#scroll-story{height:400vh;position:relative}
+.sticky-wrap{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center}
+.sticky-inner{display:grid;grid-template-columns:1fr 1fr;gap:5rem;width:100%;max-width:1200px;margin:0 auto;padding:0 3rem;align-items:center}
+.phases-container{position:relative;height:320px}
+.phase{position:absolute;top:50%;transform:translateY(-50%);opacity:0;transition:opacity .6s;pointer-events:none;width:100%}
+.phase.on{opacity:1}
+.ph-num{font-family:var(--ff);font-size:5.5rem;font-weight:900;-webkit-text-fill-color:transparent;-webkit-text-stroke:1px rgba(0,229,255,.25);line-height:1;margin-bottom:.4rem}
+.phase h3{font-family:var(--ff);font-size:1.9rem;font-weight:700;color:var(--c);margin-bottom:1rem}
+.phase p{font-size:.95rem;color:var(--muted);line-height:1.82;max-width:430px}
+.ph-dots{display:flex;gap:.5rem;margin-top:1.8rem}
+.ph-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18);transition:background .4s,box-shadow .4s}
+.ph-dot.on{background:var(--c);box-shadow:var(--glow-c)}
+#poly-canvas{width:100%;height:480px;border:1px solid var(--border);border-radius:10px;background:rgba(0,0,0,.45)}
+
+/* ── VETITE ── */
+#vetite{background:var(--bg)}
+.vetite-g{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:4rem}
+.vt-card{background:var(--card);border:1px solid var(--border);padding:2.4rem;border-radius:6px;transition:border-color .35s,transform .35s}
+.vt-card:hover{border-color:var(--m);transform:translateY(-5px)}
+.vt-icon{width:52px;height:52px;border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1.4rem;background:rgba(255,255,255,.03)}
+.vt-title{font-family:var(--ff);font-size:.9rem;font-weight:700;margin-bottom:.75rem;letter-spacing:.06em}
+.vt-desc{font-size:.85rem;color:var(--muted);line-height:1.72;margin-bottom:1.4rem}
+.vt-bar-w{height:3px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}
+.vt-bar{height:100%;border-radius:99px;width:0;transition:width 1.6s cubic-bezier(.22,1,.36,1)}
+.bar-c{background:linear-gradient(90deg,var(--c),#0099aa)}
+.bar-m{background:linear-gradient(90deg,var(--m),#cc0066)}
+.bar-g{background:linear-gradient(90deg,var(--g),#cc9900)}
+.bar-gr{background:linear-gradient(90deg,var(--gr),#009944)}
+
+/* ── APLIKIMET ── */
+#aplikimet{overflow:hidden;padding:9rem 0}
+.aplik-hdr{padding:0 3rem;max-width:1200px;margin:0 auto;margin-bottom:4rem}
+.aplik-scroll{display:flex;gap:1.4rem;padding:0 3rem 2rem;overflow-x:auto;scrollbar-width:none;cursor:grab;-webkit-overflow-scrolling:touch}
+.aplik-scroll:active{cursor:grabbing}
+.aplik-scroll::-webkit-scrollbar{display:none}
+.ap-card{flex:0 0 290px;height:390px;border-radius:8px;overflow:hidden;position:relative;cursor:none}
+.ap-card img{width:100%;height:100%;object-fit:cover;filter:brightness(.45);transition:transform .55s,filter .55s}
+.ap-card:hover img{transform:scale(1.09);filter:brightness(.65)}
+.ap-info{position:absolute;bottom:0;left:0;right:0;padding:1.8rem;background:linear-gradient(to top,rgba(0,0,0,.92),transparent)}
+.ap-cat{font-family:var(--ff);font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--c);margin-bottom:.45rem}
+.ap-name{font-family:var(--ff);font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:.35rem}
+.ap-desc{font-size:.78rem;color:rgba(255,255,255,.55);line-height:1.6}
+
+/* ── EXPERIMENTS ── */
+#eksperimentet{background:var(--bg2)}
+.exp-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:3rem;overflow-x:auto;scrollbar-width:none}
+.exp-tabs::-webkit-scrollbar{display:none}
+.exp-tab{padding:1rem 2rem;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted);font-family:var(--ff);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;cursor:none;transition:color .3s;white-space:nowrap}
+.exp-tab:hover{color:var(--txt)}
+.exp-tab.on{color:var(--c);border-bottom-color:var(--c)}
+.exp-panel{display:none}
+.exp-panel.on{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start}
+.ep-info h3{font-family:var(--ff);font-size:1.7rem;font-weight:700;color:var(--c);margin-bottom:1rem}
+.ep-info p{color:var(--muted);line-height:1.82;margin-bottom:1.2rem;font-size:.92rem}
+.ep-controls{display:flex;flex-direction:column;gap:.9rem;margin-top:1.4rem}
+.eb{padding:.75rem 1.8rem;background:transparent;border:1px solid var(--c);color:var(--c);font-family:var(--ff);font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;cursor:none;transition:background .3s,color .3s;width:fit-content}
+.eb:hover{background:var(--c);color:var(--bg)}
+.eb.danger{border-color:var(--m);color:var(--m)}
+.eb.danger:hover{background:var(--m);color:#fff}
+.ep-canvas-w{background:rgba(0,0,0,.45);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.ep-canvas-w canvas{display:block;width:100%}
+.sl-w{margin-top:1rem}
+.sl-w label{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);margin-bottom:.5rem}
+.sl-w input[type=range]{width:100%;-webkit-appearance:none;height:3px;background:var(--border);border-radius:99px;outline:none;cursor:none}
+.sl-w input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--c);border-radius:50%;cursor:none;box-shadow:var(--glow-c)}
+.ep-out{margin-top:1.4rem;padding:.9rem 1.4rem;background:var(--card);border-left:3px solid var(--c);font-size:.83rem;color:var(--muted);border-radius:0 4px 4px 0}
+.ep-out strong{color:var(--txt);display:block;margin-bottom:.25rem}
+
+/* ── QUIZ ── */
+#kuizi{background:var(--bg)}
+.quiz-wrap{max-width:680px;margin:0 auto}
+.q-prog-bar{height:3px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;margin-bottom:2rem}
+.q-prog-fill{height:100%;background:linear-gradient(90deg,var(--c),var(--m));border-radius:99px;transition:width .55s cubic-bezier(.22,1,.36,1)}
+.q-num{font-family:var(--ff);font-size:.65rem;letter-spacing:.35em;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:1rem}
+.q-text{font-family:var(--ff);font-size:1.4rem;font-weight:600;text-align:center;margin-bottom:2.8rem;line-height:1.45;min-height:76px}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.q-opt{padding:1.1rem 1.4rem;background:var(--card);border:1px solid var(--border);color:var(--txt);text-align:left;cursor:none;border-radius:5px;transition:border-color .2s,background .2s,transform .2s;font-size:.88rem;font-family:var(--fb)}
+.q-opt:hover{border-color:var(--c);background:rgba(0,229,255,.05);transform:translateX(4px)}
+.q-opt.right{border-color:var(--gr)!important;background:rgba(0,255,136,.1)!important;color:var(--gr)!important}
+.q-opt.wrong{border-color:var(--m)!important;background:rgba(255,0,128,.1)!important;color:var(--m)!important}
+.q-opt:disabled{cursor:not-allowed}
+.q-fb{margin-top:1.4rem;padding:.9rem 1.4rem;border-radius:5px;font-size:.88rem;line-height:1.65;display:none}
+.q-fb.show{display:block}
+.q-fb.right{background:rgba(0,255,136,.07);border-left:3px solid var(--gr);color:#aaffcc}
+.q-fb.wrong{background:rgba(255,0,128,.07);border-left:3px solid var(--m);color:#ffaabb}
+.q-nxt{margin-top:1.8rem;display:none}
+.q-nxt.show{display:block}
+.q-result{text-align:center;display:none}
+.q-result.show{display:block}
+.r-score{font-family:var(--ff);font-size:5.5rem;font-weight:900;line-height:1;background:linear-gradient(135deg,var(--c),var(--m));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:2rem 0 1rem}
+.r-msg{font-size:1rem;color:var(--muted);margin-bottom:2rem;line-height:1.7}
+#fw-canvas{display:block;margin:0 auto}
+
+/* ── FOOTER ── */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:4rem 3rem}
+.ft-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1.5rem}
+.ft-brand{font-family:var(--ff);font-size:1.1rem;font-weight:900;color:var(--c)}
+.ft-brand b{color:var(--m)}
+.ft-txt{font-size:.78rem;color:var(--muted)}
+.ft-links{display:flex;gap:1.8rem}
+.ft-links a{font-size:.78rem;color:var(--muted);text-decoration:none;font-family:var(--ff);letter-spacing:.08em;transition:color .3s}
+.ft-links a:hover{color:var(--c)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.rv{opacity:0;transform:translateY(38px);transition:opacity .85s cubic-bezier(.22,1,.36,1),transform .85s cubic-bezier(.22,1,.36,1)}
+.rv.vis{opacity:1;transform:translateY(0)}
+.rv-l{opacity:0;transform:translateX(-38px);transition:opacity .85s cubic-bezier(.22,1,.36,1),transform .85s cubic-bezier(.22,1,.36,1)}
+.rv-l.vis{opacity:1;transform:translateX(0)}
+.rv-r{opacity:0;transform:translateX(38px);transition:opacity .85s cubic-bezier(.22,1,.36,1),transform .85s cubic-bezier(.22,1,.36,1)}
+.rv-r.vis{opacity:1;transform:translateX(0)}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}.d5{transition-delay:.5s}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  nav{padding:1.2rem 1.5rem}
+  .nav-links{display:none}
+  .container{padding:0 1.5rem}
+  .intro-grid,.sticky-inner,.llojet-g,.vetite-g,.exp-panel.on{grid-template-columns:1fr}
+  .q-opts{grid-template-columns:1fr}
+  .sticky-inner{gap:2rem}
+  #poly-canvas{height:320px}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#hero" class="nav-brand">POLY<b>MER</b></a>
+  <ul class="nav-links">
+    <li><a href="#intro">Çfarë Janë</a></li>
+    <li><a href="#llojet">Llojet</a></li>
+    <li><a href="#scroll-story">Struktura</a></li>
+    <li><a href="#vetite">Vetitë</a></li>
+    <li><a href="#eksperimentet">Eksperimentet</a></li>
+    <li><a href="#kuizi">Kuizi</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <p class="hero-label">Shkenca e Molekulave të Mëdha</p>
+    <h1 class="hero-title">POLIMERET</h1>
+    <p class="hero-sub">Nga plastika e telefonit tuaj tek ADN-ja brenda qelizave — polimeret janë baza e jetës dhe industrisë moderne.</p>
+    <div class="hero-cta">
+      <a href="#intro" class="btn-p">Eksploroni →</a>
+      <a href="#eksperimentet" class="btn-g">Laboratori Virtual</a>
+    </div>
+  </div>
+  <div class="scroll-ind">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- INTRO -->
+<section id="intro" class="grid-bg">
+  <div class="container">
+    <div class="intro-grid">
+      <div class="intro-text">
+        <span class="sec-label rv">Bazat e Kimisë Makromolekulare</span>
+        <h2 class="sec-title rv d1">Çfarë janë <span>Polimeret?</span></h2>
+        <div class="hl-box rv d2">
+          <p>"Polimer" vjen nga greqishtja: <em>poly</em> (shumë) + <em>meros</em> (pjesë). Janë makromolekula të formuara nga zinxhirë të gjatë njësish të vogla.</p>
+        </div>
+        <p class="rv d3">Polimeret janë <strong>makromolekula</strong> të përbëra nga njësi të vogla të quajtura <strong>monomerë</strong>, të lidhura kovalentisht duke formuar zinxhirë shumë të gjatë. Kjo strukturë unike u jep veti të jashtëzakonshme mekanike, termike dhe kimike.</p>
+        <p class="rv d4">Ata gjenden kudo në natyrë (celuloza, ADN-ja, proteinat) dhe prodhohen masivisht artificialisht (plastika, najloni, kevlari). Polimeret formojnë themelin e civilizimit modern.</p>
+        <div class="stats-g">
+          <div class="stat-c rv d2"><span class="stat-n" data-count="500">0</span><span class="stat-l">Aplikime Industriale</span></div>
+          <div class="stat-c rv d3"><span class="stat-n" data-count="1838">0</span><span class="stat-l">Zbulimi i Parë (vit)</span></div>
+          <div class="stat-c rv d4"><span class="stat-n" data-count="10000">0</span><span class="stat-l">Monomerë Mesatarë</span></div>
+          <div class="stat-c rv d5"><span class="stat-n" data-count="380">0</span><span class="stat-l">Milion Ton/Vit</span></div>
+        </div>
+      </div>
+      <div class="mol-visual rv-r">
+        <canvas id="mol-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LLOJET -->
+<section id="llojet">
+  <div class="container">
+    <span class="sec-label rv">Klasifikimi Shkencor</span>
+    <h2 class="sec-title rv d1">Llojet e <em>Polimereve</em></h2>
+    <p class="rv d2" style="max-width:600px;color:var(--muted);line-height:1.82;margin-bottom:.5rem">Polimeret klasifikohen sipas origjinës, strukturës kimike dhe vetive termike. Secila kategori ofron mundësi unike aplikimi.</p>
+    <div class="llojet-g">
+      <div class="ll-card rv d2">
+        <div class="ll-img-w">
+          <img class="ll-img" src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&q=80" alt="Polimere Natyrore" loading="lazy" onerror="this.parentNode.style.background='linear-gradient(135deg,#001122,#003344)';this.style.display='none'">
+        </div>
+        <div class="ll-body">
+          <span class="ll-tag t-nat">Natyrore</span>
+          <h3 class="ll-title">Polimeret Natyrore</h3>
+          <p class="ll-text">Krijohen nga organizmat e gjallë dhe kanë formuar bazën e jetës për miliarda vjet. Ofrojnë veti të mahnitshme biokompatibiliteti dhe funksioni.</p>
+          <div class="ll-chips"><span class="chip">ADN / ARN</span><span class="chip">Celuloza</span><span class="chip">Goma</span><span class="chip">Proteina</span><span class="chip">Niseshte</span></div>
+        </div>
+      </div>
+      <div class="ll-card rv d3">
+        <div class="ll-img-w">
+          <img class="ll-img" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Polimere Sintetike" loading="lazy" onerror="this.parentNode.style.background='linear-gradient(135deg,#110022,#330044)';this.style.display='none'">
+        </div>
+        <div class="ll-body">
+          <span class="ll-tag t-syn">Sintetike</span>
+          <h3 class="ll-title">Polimeret Sintetike</h3>
+          <p class="ll-text">Prodhuar nga njeriu nëpërmjet reaksioneve kimike të kontrolluar. Vetitë e tyre mund të "programohen" sipas nevojave specifike industriale.</p>
+          <div class="ll-chips"><span class="chip">Polietilena</span><span class="chip">Najloni</span><span class="chip">PVC</span><span class="chip">Teflon</span><span class="chip">Poliestri</span></div>
+        </div>
+      </div>
+      <div class="ll-card rv d4">
+        <div class="ll-img-w">
+          <img class="ll-img" src="https://images.unsplash.com/photo-1542601906897-ecd3d1cf58ce?w=600&q=80" alt="Polimere Biodegradable" loading="lazy" onerror="this.parentNode.style.background='linear-gradient(135deg,#001100,#002200)';this.style.display='none'">
+        </div>
+        <div class="ll-body">
+          <span class="ll-tag t-bio">Bio-Degradueshme</span>
+          <h3 class="ll-title">Polimeret e Gjelbra</h3>
+          <p class="ll-text">Gjenerata e re e polimereve të projektuar për t'u shpërbërë natyrisht. Qendra e revolucionit global kundër ndotjes plastike.</p>
+          <div class="ll-chips"><span class="chip">PLA</span><span class="chip">PHB</span><span class="chip">Amidoni</span><span class="chip">Chitosan</span><span class="chip">PBAT</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STICKY SCROLL STORY -->
+<section id="scroll-story">
+  <div class="sticky-wrap grid-bg">
+    <div class="sticky-inner">
+      <div class="phases-container">
+        <div class="phase on" id="ph0">
+          <div class="ph-num">01</div>
+          <h3>Monomerët e Lirë</h3>
+          <p>Çdo polimer fillon me monomerë — molekula identike të vogla që notojnë lirisht. Si copëzat Lego para se të ndërtojmë. Në natyrë, aktivizimi vjen nga energjia kimike.</p>
+          <div class="ph-dots"><div class="ph-dot on"></div><div class="ph-dot"></div><div class="ph-dot"></div><div class="ph-dot"></div></div>
+        </div>
+        <div class="phase" id="ph1">
+          <div class="ph-num">02</div>
+          <h3>Iniciimi</h3>
+          <p>Nën ndikimin e nxehtësisë, presionit ose katalizatorëve, monomerët aktivizohen. Formojnë radikale të lira ose ione — grimca shumë reaktive që kërkojnë të lidhen.</p>
+          <div class="ph-dots"><div class="ph-dot"></div><div class="ph-dot on"></div><div class="ph-dot"></div><div class="ph-dot"></div></div>
+        </div>
+        <div class="phase" id="ph2">
+          <div class="ph-num">03</div>
+          <h3>Propagimi</h3>
+          <p>Zinxhiri rritet si valë — çdo monomer i ri shton veten në fund të zinxhirit. Ky proces vazhdon me shpejtësi të mahnitshme: deri 1000 shtesa për sekondë.</p>
+          <div class="ph-dots"><div class="ph-dot"></div><div class="ph-dot"></div><div class="ph-dot on"></div><div class="ph-dot"></div></div>
+        </div>
+        <div class="phase" id="ph3">
+          <div class="ph-num">04</div>
+          <h3>Polimeri i Plotë</h3>
+          <p>Zinxhiri final me mijëra monomerë ka veti plotësisht të ndryshme nga monomeri fillestar. Ky makromolekulë i jep materialit forcën, fleksibilitetin dhe identitetin e tij.</p>
+          <div class="ph-dots"><div class="ph-dot"></div><div class="ph-dot"></div><div class="ph-dot"></div><div class="ph-dot on"></div></div>
+        </div>
+      </div>
+      <canvas id="poly-canvas" width="500" height="480"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- VETITE -->
+<section id="vetite">
+  <div class="container">
+    <span class="sec-label rv">Karakteristikat Fizike dhe Kimike</span>
+    <h2 class="sec-title rv d1">Vetitë <span>Jashtëzakonshme</span></h2>
+    <div class="vetite-g">
+      <div class="vt-card rv d1"><div class="vt-icon">🔷</div><div class="vt-title">ELASTICITETI</div><p class="vt-desc">Goma natyrore mund të zgjatet 800% pa u thyer. Zinxhirët e gjatë polimerë të ndërthurur kthehen në gjendjen origjinale si sustë.</p><div class="vt-bar-w"><div class="vt-bar bar-c" data-w="90"></div></div></div>
+      <div class="vt-card rv d2"><div class="vt-icon">🛡️</div><div class="vt-title">REZISTENCA</div><p class="vt-desc">Kevlari — polimer aromatik — është 5× më i fortë se çeliku me të njëjtën masë. Baza e jelekëve antiplumb dhe automobilëve sportivë.</p><div class="vt-bar-w"><div class="vt-bar bar-m" data-w="95"></div></div></div>
+      <div class="vt-card rv d3"><div class="vt-icon">⚡</div><div class="vt-title">IZOLIMI ELEKTRIK</div><p class="vt-desc">Pothuajse të gjithë polimeret janë izolatorë të shkëlqyeshëm — rezistencë deri 10¹⁶ Ω·cm. Baza e të gjithë teknologjisë elektronike.</p><div class="vt-bar-w"><div class="vt-bar bar-g" data-w="88"></div></div></div>
+      <div class="vt-card rv d4"><div class="vt-icon">🌡️</div><div class="vt-title">QËNDRUESHMËRIA TERMIKE</div><p class="vt-desc">Teflon (PTFE) qëndron stabil deri në 260°C. Polimeret e avancuar si PEEK funksionojnë mbi 300°C pa deformim strukturor.</p><div class="vt-bar-w"><div class="vt-bar bar-gr" data-w="78"></div></div></div>
+      <div class="vt-card rv d5"><div class="vt-icon">💧</div><div class="vt-title">PAPËRSHKUESHMËRIA</div><p class="vt-desc">Polietilena me densitet të lartë (HDPE) ka permeabilitet ujore pothuajse zero — esencial për ambalazh ushqimor dhe tubacione.</p><div class="vt-bar-w"><div class="vt-bar bar-c" data-w="85"></div></div></div>
+      <div class="vt-card rv d3"><div class="vt-icon">⚖️</div><div class="vt-title">LEHTËSIA SPECIFIKE</div><p class="vt-desc">Polimeret janë 4-8× më të lehta se metalet me vetitë e ngjashme mekanike — revolucion në industrinë ajronautike dhe automobilistike.</p><div class="vt-bar-w"><div class="vt-bar bar-m" data-w="92"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- APLIKIMET -->
+<section id="aplikimet">
+  <div class="aplik-hdr">
+    <span class="sec-label rv">Impakti Real</span>
+    <h2 class="sec-title rv d1">Polimeret në <span>Jetën Tonë</span></h2>
+    <p class="rv d2" style="color:var(--muted);line-height:1.82;max-width:580px">Tërhiqeni për të eksploruar se si polimeret ndryshojnë çdo aspekt të civilizimit modern.</p>
+  </div>
+  <div class="aplik-scroll" id="aplik-scroll">
+    <div class="ap-card"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" alt="Tekstile" loading="lazy" onerror="this.style.display='none'"><div class="ap-info"><p class="ap-cat">Mode & Industri</p><h4 class="ap-name">Tekstilet Sintetike</h4><p class="ap-desc">Poliestri, Najloni dhe Spandex revolucionarizuan industrinë e modës botërore</p></div></div>
+    <div class="ap-card"><img src="https://images.unsplash.com/photo-1576671081837-49000212a370?w=400&q=80" alt="Mjekësi" loading="lazy" onerror="this.style.display='none'"><div class="ap-info"><p class="ap-cat">Mjekësi</p><h4 class="ap-name">Biopolimerë Mjekësorë</h4><p class="ap-desc">Qepje biodegradabile, implantet artificiale, lëkura sintetike dhe drogë me lëshim të kontrolluar</p></div></div>
+    <div class="ap-card"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80" alt="Elektronikë" loading="lazy" onerror="this.style.display='none'"><div class="ap-info"><p class="ap-cat">Elektronikë</p><h4 class="ap-name">Izolim & PCB</h4><p class="ap-desc">Çdo pajisje elektronike varet nga polimeret — izolimi i telit, kaseta, ekranet OLED</p></div></div>
+    <div class="ap-card"><img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=400&q=80" alt="Ndërtim" loading="lazy" onerror="this.style.display='none'"><div class="ap-info"><p class="ap-cat">Ndërtim</p><h4 class="ap-name">Materiale Ndërtimi</h4><p class="ap-desc">PVC për tuba, epoksi për ngjitës strukturorë, fibra qelqi për konstruksione inovative</p></div></div>
+    <div class="ap-card"><img src="https://images.unsplash.com/photo-1567627281132-70ed6de3b30a?w=400&q=80" alt="Hapësirë" loading="lazy" onerror="this.style.display='none'"><div class="ap-info"><p class="ap-cat">Hapësirë & Aviacion</p><h4 class="ap-name">Kompozite të Avancuara</h4><p class="ap-desc">Fibra karboni dhe polimere me performancë të lartë në avionë dhe anije hapësinore</p></div></div>
+    <div class="ap-card"><img src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=400&q=80" alt="Kërkim" loading="lazy" onerror="this.style.display='none'"><div class="ap-info"><p class="ap-cat">Kimi & Kërkim</p><h4 class="ap-name">Polimere Inteligjente</h4><p class="ap-desc">Polimere që reagojnë ndaj pH, temperaturës dhe dritës — ilaçe të targetuara, sensora</p></div></div>
+  </div>
+</section>
+
+<!-- EKSPERIMENTET -->
+<section id="eksperimentet">
+  <div class="container">
+    <span class="sec-label rv">Laboratori Virtual</span>
+    <h2 class="sec-title rv d1"><span>4</span> Eksperimente Interaktive</h2>
+    <p class="rv d2" style="color:var(--muted);margin-bottom:3rem;line-height:1.82;max-width:600px">Eksploroni vetitë e polimereve nëpërmjet simulimeve vizuale. Klikoni, rregulloni dhe vrojtoni rezultate në kohë reale.</p>
+    <div class="exp-tabs rv d3">
+      <button class="exp-tab on" onclick="switchExp(0,this)">01 · Ndërtues Zinxhiri</button>
+      <button class="exp-tab" onclick="switchExp(1,this)">02 · Efekti i Temperaturës</button>
+      <button class="exp-tab" onclick="switchExp(2,this)">03 · Polimerizimi</button>
+      <button class="exp-tab" onclick="switchExp(3,this)">04 · Testi i Forcës</button>
+    </div>
+
+    <!-- EXP 1 -->
+    <div class="exp-panel on" id="ep0">
+      <div class="ep-info">
+        <h3>Ndërtues i Zinxhirit Polimerik</h3>
+        <p>Shihni si monomerë individuale kombinohen për të formuar polimerin. Çdo shtesë ndryshon masat molekulare dhe vetitë e materialit.</p>
+        <p>Kliko <strong style="color:var(--c)">Shto Monomer</strong> dhe vrojtoni zinxhirin duke u rritur me animacion. Shikoni si vetitë ndryshojnë me gjatësinë.</p>
+        <div class="ep-controls">
+          <button class="eb" onclick="addMon()">＋ Shto Monomer</button>
+          <button class="eb" onclick="addMonBurst()">＋＋＋ Shto 5 Menjëherë</button>
+          <button class="eb danger" onclick="resetChain()">↺ Rifillo</button>
+        </div>
+        <div class="ep-out"><strong>Të dhënat e zinxhirit:</strong><span id="chain-info">0 monomerë · Masa: 0 g/mol · Gjendje: —</span></div>
+      </div>
+      <div class="ep-canvas-w"><canvas id="c1" width="500" height="380"></canvas></div>
+    </div>
+
+    <!-- EXP 2 -->
+    <div class="exp-panel" id="ep1">
+      <div class="ep-info">
+        <h3>Efekti i Temperaturës mbi Polimerin</h3>
+        <p>Temperatura ka ndikim dramatik mbi lëvizjen e zinxhirëve polimerë. Nën temperaturën e qelqëzimit (Tg), polimeri bëhet i ngurtë dhe i brishtë si qelqi.</p>
+        <p>Rregulloni temperaturën dhe vrojtoni si zinxhirët ndryshojnë nga xhami i ngurtë në lëng viskoz.</p>
+        <div class="ep-controls">
+          <div class="sl-w">
+            <label><span>Temperatura</span><span id="tv">25°C</span></label>
+            <input type="range" min="-150" max="350" value="25" id="t-sl" oninput="updT(this.value)">
+          </div>
+        </div>
+        <div class="ep-out" id="t-out"><strong>Gjendje e materialit:</strong><span>Polimer fleksibël · Lëvizje normale</span></div>
+      </div>
+      <div class="ep-canvas-w"><canvas id="c2" width="500" height="380"></canvas></div>
+    </div>
+
+    <!-- EXP 3 -->
+    <div class="exp-panel" id="ep2">
+      <div class="ep-info">
+        <h3>Reaksioni i Polimerizimit me Shtim</h3>
+        <p>Shihni polimerizimin e etilenit (CH₂=CH₂) në polietilena — materiali i qeseve plastike dhe shisheve. Reaksion zinxhiror dramatik.</p>
+        <p>Klikoni butonin për të iniciuar reaksionin dhe vrojtoni efektin domino ndërmjet monomerëve.</p>
+        <div class="ep-controls">
+          <button class="eb" onclick="startPoly()" id="poly-btn">▶ Fillo Reaksionin</button>
+          <button class="eb danger" onclick="resetPoly()">↺ Rifillo</button>
+        </div>
+        <div class="ep-out" id="poly-out"><strong>Gjendje:</strong><span>Monomerë të lirë — Gati për reaksion</span></div>
+      </div>
+      <div class="ep-canvas-w"><canvas id="c3" width="500" height="380"></canvas></div>
+    </div>
+
+    <!-- EXP 4 -->
+    <div class="exp-panel" id="ep3">
+      <div class="ep-info">
+        <h3>Testi i Rezistencës së Materialeve</h3>
+        <p>Krahasoni rezistencën e 3 polimereve ndaj presionit mekanik. Struktura molekulare determion forcën e secilit material.</p>
+        <p>Klikoni <strong style="color:var(--c)">Apliko Forcën</strong> mbi çdo material dhe shihni reagimin e tij.</p>
+        <div class="ep-controls">
+          <button class="eb" onclick="testForce(0)">🔨 Testo Polietilenën</button>
+          <button class="eb" onclick="testForce(1)">🔨 Testo Kevlarin</button>
+          <button class="eb" onclick="testForce(2)">🔨 Testo Gomën</button>
+          <button class="eb danger" onclick="resetForce()">↺ Rifillo</button>
+        </div>
+        <div class="ep-out" id="force-out"><strong>Rezultati:</strong><span>Zgjidh një material për të testuar</span></div>
+      </div>
+      <div class="ep-canvas-w"><canvas id="c4" width="500" height="380"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- KUIZI -->
+<section id="kuizi">
+  <div class="container">
+    <span class="sec-label rv" style="text-align:center;display:block">Testoni Njohuritë</span>
+    <h2 class="sec-title rv d1" style="text-align:center">Kuizi i <span>Polimereve</span></h2>
+    <div class="quiz-wrap rv d2">
+      <div id="quiz-main">
+        <div class="q-prog-bar"><div class="q-prog-fill" id="qpf" style="width:0%"></div></div>
+        <p class="q-num" id="qnum">Pyetja 1 nga 8</p>
+        <h3 class="q-text" id="qtxt"></h3>
+        <div class="q-opts" id="qopts"></div>
+        <div class="q-fb" id="qfb"></div>
+        <button class="btn-p q-nxt" id="qnxt" onclick="nextQ()">Pyetja Tjetër →</button>
+      </div>
+      <div class="q-result" id="qres">
+        <p style="font-family:var(--ff);font-size:.65rem;letter-spacing:.4em;color:var(--c);text-transform:uppercase">Rezultati Final</p>
+        <div class="r-score" id="rscore">0/8</div>
+        <p class="r-msg" id="rmsg"></p>
+        <canvas id="fw-canvas" width="640" height="180"></canvas>
+        <br>
+        <button class="btn-p" onclick="restartQuiz()" style="margin-top:1rem">↺ Provo Përsëri</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-inner">
+    <div class="ft-brand">POLY<b>MER</b></div>
+    <p class="ft-txt">© 2025 — Shkenca e Polimereve | Ndërtuar me kureshtje shkencore 🧪</p>
+    <div class="ft-links">
+      <a href="#hero">Kreu</a>
+      <a href="#eksperimentet">Eksperimentet</a>
+      <a href="#kuizi">Kuizi</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ═══════════════ CURSOR ═══════════════ */
+const cur=document.getElementById('cur'), curR=document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.transform=`translate(${mx-3.5}px,${my-3.5}px)`});
+(function animCur(){rx+=(mx-rx)*.11;ry+=(my-ry)*.11;curR.style.transform=`translate(${rx-17}px,${ry-17}px)`;requestAnimationFrame(animCur)})();
+
+/* ═══════════════ NAV SCROLL ═══════════════ */
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('sc',window.scrollY>60);
+});
+
+/* ═══════════════ THREE.JS HERO ═══════════════ */
+(function(){
+  const canvas=document.getElementById('hero-canvas');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  function resize(){renderer.setSize(canvas.clientWidth,canvas.clientHeight,false);camera.aspect=canvas.clientWidth/canvas.clientHeight;camera.updateProjectionMatrix();}
+
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(58,1,0.1,200);
+  camera.position.set(0,0,8);
+  resize();
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0xffffff,0.4));
+  const pl1=new THREE.PointLight(0x00e5ff,3,30);pl1.position.set(4,4,4);scene.add(pl1);
+  const pl2=new THREE.PointLight(0xff0080,3,30);pl2.position.set(-4,-4,4);scene.add(pl2);
+  const pl3=new THREE.PointLight(0xffd60a,1.5,20);pl3.position.set(0,6,2);scene.add(pl3);
+
+  const helixG=new THREE.Group();
+  const N=48, rad=1.6, turns=3.5;
+  const pts1=[],pts2=[];
+
+  const sGeo=new THREE.SphereGeometry(0.09,14,14);
+  const mat1=new THREE.MeshStandardMaterial({color:0x00e5ff,emissive:0x00e5ff,emissiveIntensity:.35,metalness:.7,roughness:.25});
+  const mat2=new THREE.MeshStandardMaterial({color:0xff0080,emissive:0xff0080,emissiveIntensity:.35,metalness:.7,roughness:.25});
+
+  for(let i=0;i<=N;i++){
+    const t=(i/N)*Math.PI*2*turns-Math.PI*turns;
+    const y=t/(Math.PI*2*turns)*13-6.5;
+    pts1.push(new THREE.Vector3(Math.cos(t)*rad,y,Math.sin(t)*rad));
+    pts2.push(new THREE.Vector3(Math.cos(t+Math.PI)*rad,y,Math.sin(t+Math.PI)*rad));
+    const s1=new THREE.Mesh(sGeo,mat1.clone());
+    s1.position.set(Math.cos(t)*rad,y,Math.sin(t)*rad);
+    helixG.add(s1);
+    const s2=new THREE.Mesh(sGeo,mat2.clone());
+    s2.position.set(Math.cos(t+Math.PI)*rad,y,Math.sin(t+Math.PI)*rad);
+    helixG.add(s2);
+    // Rungs
+    if(i%4===0&&i<N){
+      const rungPts=[new THREE.Vector3(Math.cos(t)*rad,y,Math.sin(t)*rad),new THREE.Vector3(Math.cos(t+Math.PI)*rad,y,Math.sin(t+Math.PI)*rad)];
+      const rGeo=new THREE.BufferGeometry().setFromPoints(rungPts);
+      const rMat=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.28});
+      helixG.add(new THREE.Line(rGeo,rMat));
+    }
+  }
+
+  // Tubes for strands
+  const c1=new THREE.CatmullRomCurve3(pts1),c2=new THREE.CatmullRomCurve3(pts2);
+  const tMat1=new THREE.MeshStandardMaterial({color:0x00e5ff,emissive:0x00e5ff,emissiveIntensity:.6,transparent:true,opacity:.7});
+  const tMat2=new THREE.MeshStandardMaterial({color:0xff0080,emissive:0xff0080,emissiveIntensity:.6,transparent:true,opacity:.7});
+  helixG.add(new THREE.Mesh(new THREE.TubeGeometry(c1,300,.022,8,false),tMat1));
+  helixG.add(new THREE.Mesh(new THREE.TubeGeometry(c2,300,.022,8,false),tMat2));
+  scene.add(helixG);
+
+  // Particles
+  const pN=300,pGeo=new THREE.BufferGeometry(),pPos=new Float32Array(pN*3);
+  for(let i=0;i<pN;i++){pPos[i*3]=(Math.random()-.5)*22;pPos[i*3+1]=(Math.random()-.5)*18;pPos[i*3+2]=(Math.random()-.5)*12-4;}
+  pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+  scene.add(new THREE.Points(pGeo,new THREE.PointsMaterial({color:0x00e5ff,size:.035,transparent:true,opacity:.55,blending:THREE.AdditiveBlending})));
+
+  let tRY=0,tRX=0,cRY=0,cRX=0;
+  document.addEventListener('mousemove',e=>{tRY=(e.clientX/window.innerWidth-.5)*.55;tRX=(e.clientY/window.innerHeight-.5)*.32;});
+
+  let tick=0;
+  (function anim(){
+    requestAnimationFrame(anim);tick+=.005;
+    cRY+=(tRY-cRY)*.04;cRX+=(tRX-cRX)*.04;
+    helixG.rotation.y=tick*.28+cRY;
+    helixG.rotation.x=cRX;
+    pl1.intensity=3+Math.sin(tick*1.8)*.6;
+    pl2.intensity=3+Math.cos(tick*1.5)*.6;
+    renderer.render(scene,camera);
+  })();
+  window.addEventListener('resize',resize);
+})();
+
+/* ═══════════════ 2D MOLECULE CANVAS ═══════════════ */
+(function(){
+  const cv=document.getElementById('mol-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  let W,H;
+  function sz(){W=cv.offsetWidth||400;H=cv.offsetHeight||420;cv.width=W;cv.height=H;}
+  sz();window.addEventListener('resize',sz);
+
+  const nCount=14;
+  const nodes=Array.from({length:nCount},(_,i)=>{
+    const a=(i/nCount)*Math.PI*2;
+    const r=W*.28+Math.sin(i*.9)*W*.06;
+    return{bx:W/2+Math.cos(a)*r,by:H/2+Math.sin(a)*r,ph:Math.random()*Math.PI*2,r:9+Math.random()*5,col:i%3===0?'0,229,255':i%3===1?'255,0,128':'255,214,10',lbl:['C','H','O','N'][i%4]};
+  });
+
+  let t=0;
+  (function draw(){
+    requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);t+=.008;
+    // Connections
+    nodes.forEach((n,i)=>{
+      const j=(i+1)%nCount;
+      const n2=nodes[j];
+      const x1=n.bx+Math.sin(t+n.ph)*14,y1=n.by+Math.cos(t*.7+n.ph)*14;
+      const x2=n2.bx+Math.sin(t+n2.ph)*14,y2=n2.by+Math.cos(t*.7+n2.ph)*14;
+      const g=ctx.createLinearGradient(x1,y1,x2,y2);
+      g.addColorStop(0,`rgba(${n.col},.35)`);g.addColorStop(1,`rgba(${n2.col},.35)`);
+      ctx.strokeStyle=g;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+      if(i%3===0){
+        ctx.strokeStyle=`rgba(255,255,255,.08)`;ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(W/2,H/2);ctx.stroke();
+      }
+    });
+    // Center
+    const cg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,32);
+    cg.addColorStop(0,'rgba(255,214,10,.6)');cg.addColorStop(1,'transparent');
+    ctx.fillStyle=cg;ctx.beginPath();ctx.arc(W/2,H/2,32,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffd60a';ctx.beginPath();ctx.arc(W/2,H/2,13,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,.85)';ctx.font='bold 10px Outfit';ctx.textAlign='center';ctx.fillText('C',W/2,H/2+4);
+    // Nodes
+    nodes.forEach(n=>{
+      const x=n.bx+Math.sin(t+n.ph)*14,y=n.by+Math.cos(t*.7+n.ph)*14;
+      const gl=ctx.createRadialGradient(x,y,0,x,y,n.r*2.8);
+      gl.addColorStop(0,`rgba(${n.col},.4)`);gl.addColorStop(1,'transparent');
+      ctx.fillStyle=gl;ctx.beginPath();ctx.arc(x,y,n.r*2.8,0,Math.PI*2);ctx.fill();
+      const sg=ctx.createRadialGradient(x-3,y-3,1,x,y,n.r);
+      sg.addColorStop(0,`rgba(${n.col},1)`);sg.addColorStop(1,`rgba(${n.col},.55)`);
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(x,y,n.r,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(0,0,0,.85)';ctx.font=`bold 9px Outfit`;ctx.textAlign='center';
+      ctx.fillText(n.lbl,x,y+3);
+    });
+  })();
+})();
+
+/* ═══════════════ INTERSECTION OBSERVER ═══════════════ */
+const io=new IntersectionObserver(ents=>{
+  ents.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('vis');e.target.querySelectorAll('.vt-bar').forEach(b=>{setTimeout(()=>{b.style.width=b.dataset.w+'%'},400);});}
+  });
+},{threshold:.14});
+document.querySelectorAll('.rv,.rv-l,.rv-r').forEach(el=>io.observe(el));
+document.querySelectorAll('.vt-card').forEach(el=>io.observe(el));
+
+/* ═══════════════ NUMBER COUNTER ═══════════════ */
+const cntIO=new IntersectionObserver(ents=>{
+  ents.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target.querySelector('.stat-n');
+      if(el&&!el.dataset.done){el.dataset.done=1;
+        const target=+el.dataset.count,dur=1600,step=target/(dur/16);
+        let v=0;const tmr=setInterval(()=>{v+=step;if(v>=target){el.textContent=target.toLocaleString();clearInterval(tmr);}else el.textContent=Math.floor(v).toLocaleString();},16);}
+    }
+  });
+},{threshold:.5});
+document.querySelectorAll('.stat-c').forEach(c=>cntIO.observe(c));
+
+/* ═══════════════ STICKY SCROLL POLYMER CHAIN ═══════════════ */
+const pCv=document.getElementById('poly-canvas');
+const pCtx=pCv.getContext('2d');
+const phases=[...document.querySelectorAll('.phase')];
+let curPh=0;
+
+function setPhase(p){
+  if(p===curPh)return;
+  phases[curPh].classList.remove('on');
+  curPh=p;phases[p].classList.add('on');
+}
+
+function drawPolyChain(prog){
+  const W=pCv.width,H=pCv.height;
+  pCtx.clearRect(0,0,W,H);
+  const t=Date.now()*.001;
+  const ph=Math.min(3,Math.floor(prog*4));
+  setPhase(ph);
+  const nMon=Math.max(1,Math.floor(prog*22));
+  // Free monomers (fading out as chain builds)
+  const freeDens=Math.max(0,1-prog*2);
+  for(let i=0;i<Math.floor(freeDens*18);i++){
+    const seed=i*137.508;
+    const x=(Math.sin(seed)*.45+.5)*W,y=(Math.cos(seed*.618)*.45+.5)*H;
+    const px=x+Math.sin(t*.4+seed)*18,py=y+Math.cos(t*.3+seed)*18;
+    const col=i%2===0?'0,229,255':'255,0,128';
+    pCtx.fillStyle=`rgba(${col},${freeDens*.6})`;
+    pCtx.beginPath();pCtx.arc(px,py,5,0,Math.PI*2);pCtx.fill();
+    // Small label
+    pCtx.fillStyle=`rgba(255,255,255,${freeDens*.4})`;
+    pCtx.font='7px Outfit';pCtx.textAlign='center';
+    pCtx.fillText('CH₂',px,py+12);
+  }
+  // Chain
+  if(prog>.02){
+    const r=14,sp=Math.min(44,(W-60)/nMon);
+    const sx=(W-(nMon-1)*sp)/2;
+    const cy=H/2;
+    // Bonds
+    for(let i=0;i<nMon-1;i++){
+      const x1=sx+i*sp,x2=sx+(i+1)*sp;
+      const y1=cy+Math.sin(i*.55+t*.4)*22,y2=cy+Math.sin((i+1)*.55+t*.4)*22;
+      const bg=pCtx.createLinearGradient(x1,y1,x2,y2);
+      bg.addColorStop(0,'rgba(255,255,255,.5)');bg.addColorStop(1,'rgba(255,255,255,.2)');
+      pCtx.strokeStyle=bg;pCtx.lineWidth=2;
+      pCtx.beginPath();pCtx.moveTo(x1,y1);pCtx.lineTo(x2,y2);pCtx.stroke();
+    }
+    // Monomers
+    for(let i=0;i<nMon;i++){
+      const x=sx+i*sp,y=cy+Math.sin(i*.55+t*.4)*22;
+      const col=i%2===0?'0,229,255':'255,0,128';
+      // Glow
+      const gl=pCtx.createRadialGradient(x,y,0,x,y,r*2.4);
+      gl.addColorStop(0,`rgba(${col},.45)`);gl.addColorStop(1,'transparent');
+      pCtx.fillStyle=gl;pCtx.beginPath();pCtx.arc(x,y,r*2.4,0,Math.PI*2);pCtx.fill();
+      // Sphere
+      const sg=pCtx.createRadialGradient(x-3,y-3,1,x,y,r);
+      sg.addColorStop(0,`rgba(${col},1)`);sg.addColorStop(1,`rgba(${col},.5)`);
+      pCtx.fillStyle=sg;pCtx.beginPath();pCtx.arc(x,y,r,0,Math.PI*2);pCtx.fill();
+      pCtx.fillStyle='rgba(0,0,0,.85)';pCtx.font='bold 8px Outfit';pCtx.textAlign='center';
+      pCtx.fillText('CH₂',x,y+3);
+    }
+    // Brackets at completion
+    if(prog>.82){
+      const al=Math.min(1,(prog-.82)/.18);
+      const lx=sx-22,rx2=sx+(nMon-1)*sp+22;
+      pCtx.globalAlpha=al;pCtx.strokeStyle='#ffd60a';pCtx.lineWidth=2.5;
+      pCtx.beginPath();pCtx.moveTo(lx+9,cy-40);pCtx.lineTo(lx,cy-40);pCtx.lineTo(lx,cy+40);pCtx.lineTo(lx+9,cy+40);pCtx.stroke();
+      pCtx.beginPath();pCtx.moveTo(rx2-9,cy-40);pCtx.lineTo(rx2,cy-40);pCtx.lineTo(rx2,cy+40);pCtx.lineTo(rx2-9,cy+40);pCtx.stroke();
+      pCtx.fillStyle='#ffd60a';pCtx.font='bold 20px Orbitron';pCtx.textAlign='left';pCtx.fillText('n',rx2+5,cy+7);
+      pCtx.globalAlpha=1;
+    }
+  }
+}
+
+function scrollPolyUpdate(){
+  const sec=document.getElementById('scroll-story');
+  const rect=sec.getBoundingClientRect();
+  const scrollable=sec.offsetHeight-window.innerHeight;
+  const prog=Math.max(0,Math.min(1,-rect.top/scrollable));
+  drawPolyChain(prog);
+  requestAnimationFrame(scrollPolyUpdate);
+}
+scrollPolyUpdate();
+
+/* ═══════════════ HORIZONTAL DRAG ═══════════════ */
+const aScr=document.getElementById('aplik-scroll');
+let isDown=false,startX,sLeft;
+aScr.addEventListener('mousedown',e=>{isDown=true;startX=e.pageX-aScr.offsetLeft;sLeft=aScr.scrollLeft;});
+aScr.addEventListener('mouseleave',()=>isDown=false);
+aScr.addEventListener('mouseup',()=>isDown=false);
+aScr.addEventListener('mousemove',e=>{if(!isDown)return;e.preventDefault();aScr.scrollLeft=sLeft-(e.pageX-aScr.offsetLeft-startX)*1.8;});
+
+/* ═══════════════ EXPERIMENT SWITCHER ═══════════════ */
+function switchExp(n,btn){
+  document.querySelectorAll('.exp-tab').forEach((t,i)=>t.classList.toggle('on',i===n));
+  document.querySelectorAll('.exp-panel').forEach((p,i)=>p.classList.toggle('on',i===n));
+  if(n===1)initTempExp();
+  if(n===2)initPolyExp();
+  if(n===3)initForceExp();
+}
+
+/* ═══════════════ EXP 1: CHAIN BUILDER ═══════════════ */
+const c1=document.getElementById('c1');
+const ctx1=c1.getContext('2d');
+let chain=[],raf1;
+function drawChain(){
+  const W=c1.width,H=c1.height;
+  ctx1.clearRect(0,0,W,H);
+  const t=Date.now()*.001;
+  if(!chain.length){
+    ctx1.fillStyle='rgba(0,229,255,.12)';ctx1.font='13px Outfit';ctx1.textAlign='center';
+    ctx1.fillText('Klikoni "Shto Monomer" për të filluar',W/2,H/2);return;
+  }
+  const n=chain.length,r=16;
+  const sp=Math.min(48,(W-60)/(n||1));
+  const sx=(W-(n-1)*sp)/2,cy=H/2;
+  chain.forEach((m,i)=>{m.ap=Math.min(1,m.ap+.06);});
+  // Bonds
+  for(let i=0;i<n-1;i++){
+    const x1=sx+i*sp,x2=sx+(i+1)*sp;
+    const y1=cy+Math.sin(i*.6+t)*(Math.min(chain.length*1.5,28));
+    const y2=cy+Math.sin((i+1)*.6+t)*(Math.min(chain.length*1.5,28));
+    ctx1.strokeStyle='rgba(255,255,255,.45)';ctx1.lineWidth=2;
+    ctx1.beginPath();ctx1.moveTo(x1,y1);ctx1.lineTo(x2,y2);ctx1.stroke();
+  }
+  // Monomers
+  chain.forEach((m,i)=>{
+    const x=sx+i*sp,y=cy+Math.sin(i*.6+t)*(Math.min(chain.length*1.5,28));
+    const col=m.t==='C'?'0,229,255':'255,0,128';
+    ctx1.save();ctx1.translate(x,y);ctx1.scale(m.ap,m.ap);
+    const gl=ctx1.createRadialGradient(0,0,0,0,0,r*2.5);
+    gl.addColorStop(0,`rgba(${col},.4)`);gl.addColorStop(1,'transparent');
+    ctx1.fillStyle=gl;ctx1.beginPath();ctx1.arc(0,0,r*2.5,0,Math.PI*2);ctx1.fill();
+    const sg=ctx1.createRadialGradient(-3,-3,1,0,0,r);
+    sg.addColorStop(0,`rgba(${col},1)`);sg.addColorStop(1,`rgba(${col},.5)`);
+    ctx1.fillStyle=sg;ctx1.beginPath();ctx1.arc(0,0,r,0,Math.PI*2);ctx1.fill();
+    ctx1.fillStyle='rgba(0,0,0,.85)';ctx1.font='bold 9px Outfit';ctx1.textAlign='center';ctx1.fillText(m.t,0,3);
+    ctx1.restore();
+  });
+  const states=[{t:3,l:'Oligomer',c:'#ffd60a'},{t:12,l:'Polimer i shkurtër',c:'#00e5ff'},{t:25,l:'Polimer mesatar',c:'#ff0080'},{t:999,l:'Makromolekulë',c:'#00ff88'}];
+  const st=states.find(s=>n<=s.t)||states[states.length-1];
+  ctx1.fillStyle=st.c;ctx1.font='11px Outfit';ctx1.textAlign='center';ctx1.fillText(st.l,W/2,H-25);
+  const mass=n*14;
+  const info=`${n} monomerë · Masa mol.: ~${mass} g/mol · ${st.l}`;
+  document.getElementById('chain-info').textContent=info;
+  raf1=requestAnimationFrame(drawChain);
+}
+function addMon(){
+  const types=['C','H','C','H','C','O'];
+  chain.push({t:types[chain.length%types.length],ap:0});
+  cancelAnimationFrame(raf1);drawChain();
+}
+function addMonBurst(){for(let i=0;i<5;i++)setTimeout(addMon,i*90);}
+function resetChain(){chain=[];cancelAnimationFrame(raf1);ctx1.clearRect(0,0,c1.width,c1.height);ctx1.fillStyle='rgba(0,229,255,.12)';ctx1.font='13px Outfit';ctx1.textAlign='center';ctx1.fillText('Klikoni "Shto Monomer" për të filluar',c1.width/2,c1.height/2);document.getElementById('chain-info').textContent='0 monomerë · Masa: 0 g/mol · Gjendje: —';}
+resetChain();
+
+/* ═══════════════ EXP 2: TEMPERATURE ═══════════════ */
+let tempVal=25,raf2,tCv,tCtx;
+function initTempExp(){
+  tCv=document.getElementById('c2');tCtx=tCv.getContext('2d');
+  cancelAnimationFrame(raf2);animTemp();
+}
+function updT(v){
+  tempVal=+v;document.getElementById('tv').textContent=v+'°C';
+  const states=[[-150,-50,'Xhami Polimerik','#aaccff','Rigid, i brishtë — nën Tg, zinxhirët janë të ngurtë'],[-50,20,'Polimer i Ftohtë','#00c8ff','I ngurtë, elasticitet i ulët'],[ 20,80,'Temperatura Ambient','#00ff88','Fleksibël — gjendje optimale e punës'],[80,200,'Polimer i Nxehtë','#ffd60a','I zbutur, viskoz — zinxhirët lëvizin lirshëm'],[200,999,'Gjendje e Shkrirë','#ff0080','Polimer i lëngshëm — mbi temperaturën e shkrirjes']];
+  const s=states.find(s=>tempVal>=s[0]&&tempVal<s[1])||states[4];
+  document.getElementById('t-out').innerHTML=`<strong>Gjendje:</strong><span style="color:${s[2+1]}">${s[4]}</span>`;
+}
+function animTemp(){
+  if(!tCv)return;
+  const W=tCv.width,H=tCv.height;
+  tCtx.clearRect(0,0,W,H);
+  const t=Date.now()*.001;
+  const norm=(tempVal+150)/500;
+  const amp=norm*45,freq=.5+norm*2.2,spd=.5+norm*2.5;
+  const nc=6;
+  for(let c=0;c<nc;c++){
+    const by=H*(c+1)/(nc+1);
+    const r=Math.floor(200*norm),b=Math.floor(220*(1-norm)),g=Math.floor(100*Math.sin(norm*Math.PI));
+    tCtx.strokeStyle=`rgba(${r},${g},${b},.8)`;tCtx.lineWidth=2;
+    tCtx.beginPath();
+    for(let i=0;i<=40;i++){
+      const x=20+i*(W-40)/40;
+      const y=by+Math.sin(i*freq+t*spd*(1+c*.18)+c)*amp*(1+c*.05);
+      i===0?tCtx.moveTo(x,y):tCtx.lineTo(x,y);
+    }
+    tCtx.stroke();
+    // Spheres
+    for(let i=0;i<=40;i+=4){
+      const x=20+i*(W-40)/40;
+      const y=by+Math.sin(i*freq+t*spd*(1+c*.18)+c)*amp*(1+c*.05);
+      tCtx.fillStyle=`rgba(${r},${g},${b},.9)`;tCtx.beginPath();tCtx.arc(x,y,3.5,0,Math.PI*2);tCtx.fill();
+    }
+  }
+  tCtx.fillStyle='rgba(255,255,255,.35)';tCtx.font='11px Outfit';tCtx.textAlign='left';
+  tCtx.fillText(`Temperatura: ${tempVal}°C`,12,18);
+  raf2=requestAnimationFrame(animTemp);
+}
+
+/* ═══════════════ EXP 3: POLYMERIZATION ═══════════════ */
+let pMons=[],pChain=[],pReacting=false,pIdx=0,raf3,pCv2,pCtx2;
+function initPolyExp(){
+  pCv2=document.getElementById('c3');pCtx2=pCv2.getContext('2d');
+  resetPoly();
+}
+function resetPoly(){
+  pReacting=false;pIdx=0;pChain=[];pMons=[];
+  cancelAnimationFrame(raf3);
+  const W=500,H=380;
+  for(let i=0;i<16;i++){
+    pMons.push({x:55+(i%4)*110+Math.random()*25,y:55+Math.floor(i/4)*82+Math.random()*22,vx:(Math.random()-.5)*.7,vy:(Math.random()-.5)*.7,connected:false,r:20,col:'0,229,255',lbl:'CH₂',pulse:Math.random()*Math.PI*2});
+  }
+  document.getElementById('poly-btn').disabled=false;
+  document.getElementById('poly-out').innerHTML='<strong>Gjendje:</strong><span>Monomerë të lirë — Gati për reaksion</span>';
+  if(pCv2)animPolyPreview();
+}
+function animPolyPreview(){
+  if(!pCv2)return;
+  const W=pCv2.width,H=pCv2.height;
+  pCtx2.clearRect(0,0,W,H);
+  const t=Date.now()*.001;
+  pMons.forEach(m=>{
+    if(!m.connected){
+      m.x+=m.vx;m.y+=m.vy;
+      if(m.x<25||m.x>W-25)m.vx*=-1;
+      if(m.y<25||m.y>H-25)m.vy*=-1;
+      // double bond indicator
+      const pulse=.5+.5*Math.sin(t*2+m.pulse);
+      pCtx2.strokeStyle=`rgba(255,214,10,${.3*pulse})`;pCtx2.lineWidth=2;
+      pCtx2.beginPath();pCtx2.arc(m.x,m.y,m.r+5,0,Math.PI*2);pCtx2.stroke();
+      // Glow
+      const gl=pCtx2.createRadialGradient(m.x,m.y,0,m.x,m.y,m.r*2.2);
+      gl.addColorStop(0,`rgba(${m.col},.4)`);gl.addColorStop(1,'transparent');
+      pCtx2.fillStyle=gl;pCtx2.beginPath();pCtx2.arc(m.x,m.y,m.r*2.2,0,Math.PI*2);pCtx2.fill();
+      // Sphere
+      const sg=pCtx2.createRadialGradient(m.x-3,m.y-3,1,m.x,m.y,m.r);
+      sg.addColorStop(0,`rgba(${m.col},1)`);sg.addColorStop(1,`rgba(${m.col},.5)`);
+      pCtx2.fillStyle=sg;pCtx2.beginPath();pCtx2.arc(m.x,m.y,m.r,0,Math.PI*2);pCtx2.fill();
+      pCtx2.fillStyle='rgba(0,0,0,.85)';pCtx2.font='bold 9px Outfit';pCtx2.textAlign='center';pCtx2.fillText('CH₂',m.x,m.y+4);
+    }
+  });
+  if(pChain.length>0)drawPolyChainExp();
+  if(!pReacting||pIdx<pMons.length)raf3=requestAnimationFrame(animPolyPreview);
+}
+function drawPolyChainExp(){
+  if(!pCv2)return;
+  const n=pChain.length,r=14,sp=36;
+  const sx=(pCv2.width-(n-1)*sp)/2;
+  const cy=pCv2.height-60;
+  for(let i=0;i<n-1;i++){
+    pCtx2.strokeStyle='rgba(255,255,255,.5)';pCtx2.lineWidth=2;
+    pCtx2.beginPath();pCtx2.moveTo(sx+i*sp,cy);pCtx2.lineTo(sx+(i+1)*sp,cy);pCtx2.stroke();
+  }
+  pChain.forEach((_,i)=>{
+    const x=sx+i*sp;
+    const gl=pCtx2.createRadialGradient(x,cy,0,x,cy,r*2);
+    gl.addColorStop(0,'rgba(255,0,128,.5)');gl.addColorStop(1,'transparent');
+    pCtx2.fillStyle=gl;pCtx2.beginPath();pCtx2.arc(x,cy,r*2,0,Math.PI*2);pCtx2.fill();
+    const sg=pCtx2.createRadialGradient(x-3,cy-3,1,x,cy,r);
+    sg.addColorStop(0,'rgba(255,0,128,1)');sg.addColorStop(1,'rgba(255,0,128,.5)');
+    pCtx2.fillStyle=sg;pCtx2.beginPath();pCtx2.arc(x,cy,r,0,Math.PI*2);pCtx2.fill();
+    pCtx2.fillStyle='rgba(0,0,0,.85)';pCtx2.font='bold 8px Outfit';pCtx2.textAlign='center';pCtx2.fillText('—CH₂—',x,cy+4);
+  });
+  if(pCv2){pCtx2.fillStyle='rgba(0,229,255,.7)';pCtx2.font='11px Outfit';pCtx2.textAlign='center';
+    pCtx2.fillText(`Polimeri: ${n}/${pMons.length} monomerë të lidhur`,pCv2.width/2,pCv2.height-20);}
+}
+function startPoly(){
+  if(pReacting)return;pReacting=true;
+  document.getElementById('poly-btn').disabled=true;
+  function connectNext(){
+    if(pIdx>=pMons.length){document.getElementById('poly-out').innerHTML='<strong>✓ Reaksioni Përfundoi!</strong><span style="color:var(--gr)"> Formuar polietilena — zinxhir i plotë!</span>';return;}
+    const m=pMons[pIdx];m.connected=true;pChain.push(m);pIdx++;
+    document.getElementById('poly-out').innerHTML=`<strong>Polimerizimi:</strong><span>Lidhur monomeri ${pIdx}/${pMons.length} — Masa: ~${pIdx*14} g/mol</span>`;
+    setTimeout(connectNext,200);
+  }
+  connectNext();
+}
+
+/* ═══════════════ EXP 4: FORCE TEST ═══════════════ */
+let fCv,fCtx,fState=[0,0,0],fAnim=[],raf4;
+const fMats=[
+  {name:'Polietilena (LDPE)',strength:35,elastic:true,color:'0,229,255',desc:'Material plastik fleksibël — deformohet pa u thyer'},
+  {name:'Kevlar (Para-Aramid)',strength:95,elastic:false,color:'255,214,10',desc:'Polimer me rezistencë ultra-të-lartë — nuk deformohet'},
+  {name:'Goma Natyrore',strength:55,elastic:true,color:'0,255,136',desc:'Polimer elastomerik — zgjatet dhe kthehet'}
+];
+function initForceExp(){
+  fCv=document.getElementById('c4');fCtx=fCv.getContext('2d');
+  fState=[0,0,0];fAnim=[0,0,0];resetForce();
+}
+function resetForce(){
+  fState=[0,0,0];fAnim=[0,0,0];
+  if(!fCv)return;drawForce();
+  document.getElementById('force-out').innerHTML='<strong>Rezultati:</strong><span>Zgjidh një material për të testuar</span>';
+}
+function testForce(i){
+  if(!fCv)return;
+  fState[i]=1;fAnim[i]=1;
+  const m=fMats[i];
+  const outcome=m.elastic?'deformua dhe u kthye':'qëndroi i paprekur';
+  const col=m.elastic?'var(--c)':'var(--gr)';
+  document.getElementById('force-out').innerHTML=`<strong>${m.name}:</strong><span style="color:${col}"> ${outcome} — ${m.desc}</span>`;
+  let bounce=0;
+  const anim=()=>{
+    bounce+=.08;fAnim[i]=Math.max(0,1-bounce)*Math.sin(bounce*8);
+    drawForce();
+    if(bounce<Math.PI)requestAnimationFrame(anim);
+    else{fAnim[i]=0;drawForce();}
+  };anim();
+}
+function drawForce(){
+  if(!fCv)return;
+  const W=fCv.width,H=fCv.height;
+  fCtx.clearRect(0,0,W,H);
+  const bW=130,bH=70,pad=15;
+  const startX=(W-fMats.length*bW-(fMats.length-1)*pad)/2;
+  fMats.forEach((m,i)=>{
+    const x=startX+i*(bW+pad),y=H/2-20;
+    const deform=fAnim[i]*20;
+    const col=m.color;
+    // Container
+    fCtx.strokeStyle=fState[i]?`rgba(${col},.9)`:'rgba(255,255,255,.2)';
+    fCtx.lineWidth=2;fCtx.strokeRect(x,y-bH/2,bW,bH+deform);
+    // Fill
+    const fillG=fCtx.createLinearGradient(x,y,x+bW,y);
+    fillG.addColorStop(0,`rgba(${col},.12)`);fillG.addColorStop(1,`rgba(${col},.06)`);
+    fCtx.fillStyle=fillG;fCtx.fillRect(x,y-bH/2,bW,bH+deform);
+    // Deformation indicator
+    if(deform>2){
+      fCtx.strokeStyle=`rgba(${col},.7)`;fCtx.lineWidth=1.5;
+      fCtx.setLineDash([4,4]);
+      fCtx.strokeRect(x+4,y-bH/2+4,bW-8,(bH+deform)-8);
+      fCtx.setLineDash([]);
+    }
+    // Label
+    fCtx.fillStyle=`rgba(${col},${fState[i]?.9:.5})`;
+    fCtx.font=`bold 9px Orbitron`;fCtx.textAlign='center';
+    fCtx.fillText(m.name.split('(')[0].trim(),x+bW/2,y-bH/2-12);
+    fCtx.font='9px Outfit';fCtx.fillStyle='rgba(255,255,255,.5)';
+    fCtx.fillText(`Rezistenca: ${m.strength}%`,x+bW/2,y+bH/2+deform+18);
+    // Force bar
+    fCtx.fillStyle=`rgba(${col},.7)`;
+    fCtx.fillRect(x,y+bH/2+deform+28,bW*(m.strength/100),4);
+    fCtx.strokeStyle=`rgba(${col},.3)`;fCtx.lineWidth=1;
+    fCtx.strokeRect(x,y+bH/2+deform+28,bW,4);
+  });
+  // Legend
+  fCtx.fillStyle='rgba(255,255,255,.3)';fCtx.font='10px Outfit';fCtx.textAlign='center';
+  fCtx.fillText('Klikoni butonat për të testuar rezistencën e secilit material',W/2,H-16);
+}
+
+/* ═══════════════ QUIZ ═══════════════ */
+const questions=[
+  {q:"Çfarë është një polimer?",opts:["Atom i vetëm","Molekulë e vogël e thjeshtë","Makromolekulë e formuar nga monomerë","Komposto jonike"],ans:2,exp:"Polimeret janë makromolekula (molekula shumë të mëdha) të formuara nga njësi të vogla të përsëritura të quajtura monomerë, të lidhura kovalentisht."},
+  {q:"Si quhen njësitë e vogla përsëritëse të polimerit?",opts:["Izomere","Monomerë","Kataliza","Elektrolite"],ans:1,exp:"Monomerët janë njësi strukturore bazë që, të lidhura në zinxhir, formojnë polimerin. Fjala 'monomer' vjen nga greqishtja: mono (një) + meros (pjesë)."},
+  {q:"Cili polimer është natyror?",opts:["Najloni","PVC","Poliestri","Celuloza"],ans:3,exp:"Celuloza është polimer natyror i gjetur në muret qelizore të bimëve. Është polimeri më i bollshëm natyror në Tokë."},
+  {q:"Cili polimer është 5 herë më i fortë se çeliku?",opts:["Polietilena","Kevlari","PVC","Polipropylen"],ans:1,exp:"Kevlari (Poly-paraphenylene terephthalamide) është polimer aromatik me lidhje hidrogjenike shumë të forta midis zinxhirëve — 5× më i fortë se çeliku me të njëjtën masë."},
+  {q:"Çfarë është temperatura e qelqëzimit (Tg)?",opts:["Temperatura e djegies","Temperatura ku polimeri kalon nga gjendje e ngurtë në fleksibël","Temperatura e sublimimit","Temperatura e reaksionit"],ans:1,exp:"Temperatura e qelqëzimit (Tg) është temperatura nën të cilën zinxhirët polimerë humbin lëvizshmërinë dhe polimeri bëhet i ngurtë si qelqi. Shumë polimere kanë Tg nën 0°C."},
+  {q:"Cili nga polimeret është biodegradabil?",opts:["Polietilena (PE)","PVC","PLA (Acid Polilaktik)","Teflon"],ans:2,exp:"PLA (Polylactic acid) prodhohet nga burime bio të rinovueshme si misri dhe është plotësisht biodegradabil. Përdoret gjerësisht në printimin 3D dhe ambalazh."},
+  {q:"Çfarë lloji polimerizimi ndodh me etilenet?",opts:["Polimerizim kondensimi","Polimerizim me shtim (adicion)","Polimerizim kryq","Oligomerizim"],ans:1,exp:"Etileni i nënshtrohet polimerizimit me shtim (addition polymerization) — lidhjet dyfishe C=C hapen dhe monomerët lidhen zinxhir pa humbur asnjë atom."},
+  {q:"Cili polimer natyror formon ADN-në?",opts:["Celuloza","Niseshta","Polinukleotide","Lignina"],ans:2,exp:"ADN-ja është polimer natyror i ndërtuar nga monomerë të quajtur nukleotide. Secili nukleotid përmban sheqer deoksiribozë, bazë azotike dhe fosfat. Zinxhiri i dyfishtë helikal mban informacionin gjenetik."}
+];
+let qIdx=0,score=0,answered=false;
+
+function renderQ(){
+  const q=questions[qIdx];
+  document.getElementById('qpf').style.width=`${(qIdx/questions.length)*100}%`;
+  document.getElementById('qnum').textContent=`Pyetja ${qIdx+1} nga ${questions.length}`;
+  document.getElementById('qtxt').textContent=q.q;
+  const optsEl=document.getElementById('qopts');
+  optsEl.innerHTML=q.opts.map((o,i)=>`<button class="q-opt" onclick="answerQ(${i})">${o}</button>`).join('');
+  document.getElementById('qfb').className='q-fb';document.getElementById('qfb').textContent='';
+  document.getElementById('qnxt').className='q-nxt';answered=false;
+}
+
+function answerQ(i){
+  if(answered)return;answered=true;
+  const q=questions[qIdx];
+  document.querySelectorAll('.q-opt').forEach((b,j)=>{b.disabled=true;if(j===q.ans)b.classList.add('right');else if(j===i&&i!==q.ans)b.classList.add('wrong');});
+  if(i===q.ans)score++;
+  const fb=document.getElementById('qfb');
+  fb.className='q-fb show '+(i===q.ans?'right':'wrong');
+  fb.innerHTML=(i===q.ans?'✓ Saktë! ':'✗ Jo saktë. ')+q.exp;
+  document.getElementById('qnxt').className='q-nxt show';
+}
+
+function nextQ(){
+  qIdx++;
+  if(qIdx>=questions.length){showResult();return;}
+  renderQ();
+}
+
+function showResult(){
+  document.getElementById('quiz-main').style.display='none';
+  const res=document.getElementById('qres');
+  res.className='q-result show';
+  document.getElementById('rscore').textContent=`${score}/${questions.length}`;
+  const msgs=['Mundohuni sërish! Lexoni seksionet dhe provoni përsëri.','Fillim i mirë! Keni bazat — zbuloni më shumë!','Shumë mirë! Njohuritë tuaja janë solide!','Shkëlqyeshëm! Jeni ekspert polimerësh! 🎉'];
+  const mi=score<=2?0:score<=4?1:score<=6?2:3;
+  document.getElementById('rmsg').textContent=msgs[mi];
+  if(score>=6)launchFireworks();
+}
+
+function restartQuiz(){
+  qIdx=0;score=0;answered=false;
+  document.getElementById('quiz-main').style.display='block';
+  document.getElementById('qres').className='q-result';
+  renderQ();
+}
+
+// Fireworks
+function launchFireworks(){
+  const cv=document.getElementById('fw-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const particles=[];
+  const colors=['0,229,255','255,0,128','255,214,10','0,255,136'];
+  for(let i=0;i<80;i++){
+    const a=Math.random()*Math.PI*2;
+    const s=2+Math.random()*4;
+    particles.push({x:cv.width/2,y:cv.height/2,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col:colors[Math.floor(Math.random()*colors.length)]});
+  }
+  function animFw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.life-=.015;
+      ctx.globalAlpha=p.life;ctx.fillStyle=`rgba(${p.col},1)`;
+      ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    if(particles.some(p=>p.life>0))requestAnimationFrame(animFw);
+  }animFw();
+}
+
+renderQ();
+
+/* ═══════════════ EXTRA FLOATING PARTICLES (BG) ═══════════════ */
+(function(){
+  const style=document.createElement('style');
+  const colors=['var(--c)','var(--m)'];
+  let css='';
+  for(let i=0;i<25;i++){
+    const size=1+Math.random()*3,left=Math.random()*100,delay=Math.random()*12,dur=8+Math.random()*10,col=colors[i%2];
+    css+=`.bgp${i}{position:fixed;bottom:-10px;left:${left}%;width:${size}px;height:${size}px;background:${col};border-radius:50%;opacity:0;pointer-events:none;animation:floatUp ${dur}s ${delay}s infinite;z-index:0;}`;
+  }
+  css+=`@keyframes floatUp{0%{transform:translateY(0) scale(0);opacity:0}10%{opacity:.6}90%{opacity:.3}100%{transform:translateY(-110vh) scale(1);opacity:0}}`;
+  style.textContent=css;
+  document.head.appendChild(style);
+  const frag=document.createDocumentFragment();
+  for(let i=0;i<25;i++){const d=document.createElement('div');d.className=`bgp${i}`;frag.appendChild(d);}
+  document.body.appendChild(frag);
+})();
+</script>
+</body>
+</html>
